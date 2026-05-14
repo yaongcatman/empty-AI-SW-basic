@@ -239,7 +239,8 @@ sudo crontab -u agent-admin -e
 - # agent-admin 계정의 예약 작업 편집
 * * * * * /home/agent-admin/agent-app/monitor.sh
 
-#실행
+#터미널에서 (* * * * * /home/agent-admin/agent-app/monitor.sh) 작동검사
+sudo crontab -u agent-admin -1
 
 ```
 <img width="675" height="69" alt="스크린샷 2026-05-15 오전 12 29 37" src="https://github.com/user-attachments/assets/4e73f9b2-7143-47ff-a67a-b326905bee7d" />
