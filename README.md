@@ -64,7 +64,7 @@
 ## 2. 필수 증거 자료 체크리스트 (Evidence Checklist)
 
 
-### SSH 포트(20022) 및 Root 차단   
+### ⁂SSH 포트(20022) 및 Root 차단   
 `ss -tulnp \| grep 20022`
 ```bash
 # 포트 20022로 변경 및 Root 접속 차단
@@ -79,8 +79,10 @@ ss -tuln | grep 20022
 ```
 
 <img width="566" height="108" alt="스크린샷 2026-05-14 오후 10 22 22" src="https://github.com/user-attachments/assets/1de527ba-714d-4331-8177-602ef910c073" />
-  
-### 방화벽 허용 (20022, 15034)  
+
+##
+
+### ⁂방화벽 허용 (20022, 15034)  
 `sudo ufw status verbose`   
 ```bash
 # 방화벽 도구 UFW 설치
@@ -100,8 +102,10 @@ sudo ufw status
 ```
 
 <img width="478" height="307" alt="스크린샷 2026-05-14 오후 10 28 35" src="https://github.com/user-attachments/assets/90e781b6-f1d6-4782-a8b6-27ede1256deb" />
-  
-### 계정/그룹 생성 확인   
+
+##
+
+### ⁂계정/그룹 생성 확인   
 `id agent-admin`, `id agent-dev`  
 ```bash
 # 1. 그룹 생성
@@ -119,8 +123,9 @@ id agent-admin && id agent-dev && id agent-test
 ```
 <img width="642" height="254" alt="스크린샷 2026-05-14 오후 10 32 20" src="https://github.com/user-attachments/assets/0b053376-c2e3-44d4-b3bd-5bab5d074bf4" />
 
-  
-### 디렉토리 구조 및 ACL 권한  
+##
+
+### ⁂디렉토리 구조 및 ACL 권한  
 `ls -ld`, `getfacl [디렉토리명]`  
 ```bash
 # 1. 디렉토리 생성
@@ -148,7 +153,9 @@ sudo ls -ld /var/log/agent-app
 
 <img width="665" height="97" alt="스크린샷 2026-05-14 오후 10 39 21" src="https://github.com/user-attachments/assets/edf7f5e3-1770-4787-92b5-8928a13e1cc9" />
 
-### 앱 Boot Sequence 5단계 [OK]  
+##
+
+### ⁂앱 Boot Sequence 5단계 [OK]  
 `Agent READY` 출력 확인  
 
 ```bash
@@ -158,17 +165,16 @@ sudo chown agent-admin:agent-common /home/agent-admin/agent-app/agent-app
   
 # 실행 권한 부여 (확장자가 없으므로 실행 가능하게 만들어야 함)
 sudo chmod +x /home/agent-admin/agent-app/agent-app
-```
-<img width="772" height="29" alt="스크린샷 2026-05-14 오후 11 21 01" src="https://github.com/user-attachments/assets/176efd82-9d12-4ccb-a6b0-7455053c8e54" />
 
-```bash
-검증
+#검증
 # 1 단계 -u 옵션을 사용하여 agent-admin 계정으로 앱을 실행합니다.  
 sudo -u agent-admin /home/agent-admin/agent-app/agent-app | sudo tee /var/log/agent-app/boot.log
 ```
+<img width="772" height="29" alt="스크린샷 2026-05-14 오후 11 21 01" src="https://github.com/user-attachments/assets/176efd82-9d12-4ccb-a6b0-7455053c8e54" />
 <img width="811" height="217" alt="스크린샷 2026-05-14 오후 11 21 54" src="https://github.com/user-attachments/assets/ec873522-06ec-4071-9d89-9316ceeca602" />
 
 
+```bash
 # 2 단계 / 3단계
 [3단계]
 #앱이 원하는 업로드 폴더 생성
@@ -189,27 +195,65 @@ AGENT_PORT=15034 \
 AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files \
 AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys/t_secret.key \
 /home/agent-admin/agent-app/agent-app | sudo tee /var/log/agent-app/boot.log
+```
+<img width="745" height="383" alt="스크린샷 2026-05-14 오후 11 30 32" src="https://github.com/user-attachments/assets/28b2ff30-48ba-4aed-bc67-51b1f1f5f18b" />
 
-# 4단계
+```bash
+# 4단계 / 5단계
 1. 15034 포트를 쓰고 있는 범인 찾기
-sudo lsof -i :15034  
+sudo ss -tulpn | grep 15034
 
+1. 범인 소탕 (프로세스 종료)
+sudo kill -9 2396
 
+#검증
+sudo -u agent-admin \
+AGENT_HOME=/home/agent-admin/agent-app \
+AGENT_PORT=15034 \
+AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files \
+AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys/t_secret.key \
+/home/agent-admin/agent-app/agent-app | sudo tee /var/log/agent-app/boot.log
 
 ```
-<img width="735" height="31" alt="스크린샷 2026-05-14 오후 11 03 30" src="https://github.com/user-attachments/assets/ff39b591-4ebb-44cb-bd9d-1dc647d9dad8" />
+<img width="754" height="453" alt="스크린샷 2026-05-14 오후 11 35 24" src="https://github.com/user-attachments/assets/4fb5dbe1-3d17-4d70-b438-7ea74b47a35e" />
 
-<img width="654" height="181" alt="스크린샷 2026-05-14 오후 11 04 21" src="https://github.com/user-attachments/assets/ff8c3764-0847-4a46-9d0f-7ea946438481" />
+```bash
+마지막검증
+sudo cat /var/log/agent-app/boot.log
+```
+<img width="623" height="439" alt="스크린샷 2026-05-14 오후 11 41 56" src="https://github.com/user-attachments/assets/ac286607-6cde-415e-bfe2-26272ce46a10" />
 
-### `monitor.sh` 실행 결과 프로세스/리소스 정상 수집 확인   
+##
+
+### ⁂`monitor.sh` 실행 결과 프로세스/리소스 정상 수집 확인   
+
+```bash
+# 실행 권한 부여
+sudo chmod 755 /home/agent-admin/agent-app/monitor.sh
+
+# 소유권 설정 (계정과 그룹 확인)
+sudo chown agent-admin:agent-common /home/agent-admin/agent-app/monitor.sh
+
+# 3단계: crontab으로 1분 주기 자동화 등록
+sudo crontab -u agent-admin -e
+- # agent-admin 계정의 예약 작업 편집
+* * * * * /home/agent-admin/agent-app/monitor.sh
+
+#실행
+
+```
+<img width="675" height="69" alt="스크린샷 2026-05-15 오전 12 29 37" src="https://github.com/user-attachments/assets/4e73f9b2-7143-47ff-a67a-b326905bee7d" />
+
+
+<img width="1061" height="493" alt="스크린샷 2026-05-14 오후 11 58 01" src="https://github.com/user-attachments/assets/3fe0287f-0632-4609-98e1-c5161adee18b" />
+<img width="614" height="396" alt="스크린샷 2026-05-15 오전 12 01 05" src="https://github.com/user-attachments/assets/bdaa6043-8ecb-4e4d-b32c-9f9450cdf7ce" />
+
+##
+
+### ⁂`monitor.log` 누적 기록 / crontab 자동 실행 확인  (1분 주기 로그 증가 확인)  
+`sudo tail -f /var/log/agent-app/monitor.log`
   
-### `monitor.log` 누적 기록   
-`tail -f /var/log/agent-app/monitor.log`  
-  
-  
-### crontab 자동 실행 확인  
-1분 주기 로그 증가 확인  
-  
+ <img width="501" height="226" alt="스크린샷 2026-05-15 오전 12 33 09" src="https://github.com/user-attachments/assets/faa8b41a-f675-40a5-b28e-3483a1c906ce" />
 
 ---
 
@@ -217,21 +261,38 @@ sudo lsof -i :15034
 
 ### 📄 monitor.sh
 ```bash
+
+# 1. 파일 생성 및 편집기 열기
+sudo nano /home/agent-admin/agent-app/monitor.sh
+
 #!/bin/bash
 
-# [프로젝트 경로 설정]
-AGENT_HOME="/home/agent-admin/agent-app"
 LOG_FILE="/var/log/agent-app/monitor.log"
+# APP_NAME을 더 명확하게 지정 (실행 중인 파일명)
+APP_NAME="agent-app" 
+TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
 
-# 1. Health Check (Process & Port)
-# ... (작성하신 스크립트 내용을 여기에 붙여넣으세요) ...
+# 1. PID 추출 (가장 오래된 프로세스 하나만 가져와서 에러 방지)
+PID=$(pgrep -f "$APP_NAME" | head -n 1)
 
-# 2. Resource Collection (CPU, MEM, DISK)
-# ...
+# 2. PID가 숫자인지 확인 후 리소스 수집
+if [[ -n "$PID" && "$PID" =~ ^[0-9]+$ ]]; then
+    STATUS="UP"
+    # 앞뒤 공백을 확실히 제거하기 위해 xargs 사용
+    CPU=$(ps -p "$PID" -o %cpu --no-headers | xargs)
+    MEM=$(ps -p "$PID" -o rss --no-headers | awk '{printf "%.2fMB", $1/1024}')
+else
+    STATUS="DOWN"
+    CPU="0.0"
+    MEM="0MB"
+fi
 
-# 3. Logging
-# [$(date '+%Y-%m-%d %H:%M:%S')] PID:... CPU:..% MEM:..% DISK_USED:..% >> $LOG_FILE
+# 3. 로그 기록
+echo "[$TIMESTAMP] Status: $STATUS | CPU: ${CPU:-0.0}% | Memory: ${MEM:-0MB}" >> $LOG_FILE
 ```
+<img width="887" height="487" alt="스크린샷 2026-05-15 오전 12 25 32" src="https://github.com/user-attachments/assets/ff09d44e-6e57-400b-bc4f-7a71ba6dc563" />
+
+
 
 ## 5. 학습 고찰 및 핵심 개념 정리 (Q&A)
 
