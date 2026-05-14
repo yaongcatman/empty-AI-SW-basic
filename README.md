@@ -103,10 +103,48 @@ sudo ufw status
   
 ### 계정/그룹 생성 확인   
 `id agent-admin`, `id agent-dev`  
+```bash
+# 1. 그룹 생성
+sudo groupadd agent-common
+sudo groupadd agent-core
+
+# 2. 사용자 생성 (홈 디렉토리 생성 및 보조 그룹 할당)
+sudo useradd -m -G agent-core,agent-common agent-admin
+sudo useradd -m -G agent-core,agent-common agent-dev
+sudo useradd -m -G agent-common agent-test
+
+# 3. 생성 확인 (정상이라면 각 계정 정보가 한 줄씩 출력됨)
+id agent-admin && id agent-dev && id agent-test
+
+```
+<img width="642" height="254" alt="스크린샷 2026-05-14 오후 10 32 20" src="https://github.com/user-attachments/assets/0b053376-c2e3-44d4-b3bd-5bab5d074bf4" />
+
   
 ### 디렉토리 구조 및 ACL 권한  
 `ls -ld`, `getfacl [디렉토리명]`  
-  
+```bash
+# 1. 디렉토리 생성
+sudo mkdir -p /home/agent-admin/agent-app/upload_files
+sudo mkdir -p /home/agent-admin/agent-app/api_keys
+sudo mkdir -p /var/log/agent-app
+
+# 2. 소유권 설정 (admin 소유, common 그룹 관리)
+sudo chown -R agent-admin:agent-common /home/agent-admin/agent-app
+
+# 3. 상세 권한 설정 (핵심!)
+# api_keys와 log는 core 그룹(admin, dev)만 볼 수 있게 설정
+sudo chown :agent-core /home/agent-admin/agent-app/api_keys /var/log/agent-app
+sudo chmod 770 /home/agent-admin/agent-app/upload_files
+sudo chmod 770 /home/agent-admin/agent-app/api_keys
+sudo chmod 770 /var/log/agent-app
+
+# 4. 검증
+ls -ld /home/agent-admin/agent-app/upload_files
+ls -ld /home/agent-admin/agent-app/api_keys
+ls -ld /var/log/agent-app
+```
+<img width="696" height="268" alt="스크린샷 2026-05-14 오후 10 35 27" src="https://github.com/user-attachments/assets/6e58b44e-1c4a-4ca9-9c38-4181000ef327" />
+
 ### 앱 Boot Sequence 5단계 [OK]  
 `Agent READY` 출력 확인  
     
