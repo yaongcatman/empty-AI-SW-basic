@@ -67,20 +67,39 @@
 ### SSH 포트(20022) 및 Root 차단   
 `ss -tulnp \| grep 20022`
 ```bash
-# 포트를 20022로 변경
+# 포트 20022로 변경 및 Root 접속 차단
 sudo sed -i 's/^#\?Port .*/Port 20022/' /etc/ssh/sshd_config
-
-# Root 원격 접속 차단
 sudo sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
-  
-# 설정값 검증
-grep -E "Port|PermitRootLogin" /etc/ssh/sshd_config  
+
+# 설정 적용 (ssh 서비스 재시작)
+sudo systemctl restart ssh
+
+# 설정 적용 확인
+ss -tuln | grep 20022
 ```
-  안녕안녕 내이름은 출력확인 
 
-
+<img width="566" height="108" alt="스크린샷 2026-05-14 오후 10 22 22" src="https://github.com/user-attachments/assets/1de527ba-714d-4331-8177-602ef910c073" />
+  
 ### 방화벽 허용 (20022, 15034)  
-`sudo ufw status verbose` 
+`sudo ufw status verbose`   
+```bash
+# 방화벽 도구 UFW 설치
+sudo apt update
+sudo apt install ufw -y
+
+# 포트 허용
+sudo ufw allow 20022/tcp
+sudo ufw allow 15034/tcp
+
+# 방화벽 활성화
+sudo ufw --force enable
+
+# 상태 확인
+sudo ufw status
+
+```
+
+<img width="478" height="307" alt="스크린샷 2026-05-14 오후 10 28 35" src="https://github.com/user-attachments/assets/90e781b6-f1d6-4782-a8b6-27ede1256deb" />
   
 ### 계정/그룹 생성 확인   
 `id agent-admin`, `id agent-dev`  
