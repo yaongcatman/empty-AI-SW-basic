@@ -139,15 +139,68 @@ sudo chmod 770 /home/agent-admin/agent-app/api_keys
 sudo chmod 770 /var/log/agent-app
 
 # 4. 검증
-ls -ld /home/agent-admin/agent-app/upload_files
-ls -ld /home/agent-admin/agent-app/api_keys
-ls -ld /var/log/agent-app
+sudo ls -ld /home/agent-admin/agent-app/upload_files
+sudo ls -ld /home/agent-admin/agent-app/api_keys
+sudo ls -ld /var/log/agent-app
 ```
-<img width="696" height="268" alt="스크린샷 2026-05-14 오후 10 35 27" src="https://github.com/user-attachments/assets/6e58b44e-1c4a-4ca9-9c38-4181000ef327" />
+
+<img width="629" height="158" alt="스크린샷 2026-05-14 오후 10 39 08" src="https://github.com/user-attachments/assets/96d15249-dcad-4ee3-a407-0314df4437fc" />
+
+<img width="665" height="97" alt="스크린샷 2026-05-14 오후 10 39 21" src="https://github.com/user-attachments/assets/edf7f5e3-1770-4787-92b5-8928a13e1cc9" />
 
 ### 앱 Boot Sequence 5단계 [OK]  
 `Agent READY` 출력 확인  
-    
+
+```bash
+# 1단계
+# 소유권 설정
+sudo chown agent-admin:agent-common /home/agent-admin/agent-app/agent-app
+  
+# 실행 권한 부여 (확장자가 없으므로 실행 가능하게 만들어야 함)
+sudo chmod +x /home/agent-admin/agent-app/agent-app
+```
+<img width="772" height="29" alt="스크린샷 2026-05-14 오후 11 21 01" src="https://github.com/user-attachments/assets/176efd82-9d12-4ccb-a6b0-7455053c8e54" />
+
+```bash
+검증
+# 1 단계 -u 옵션을 사용하여 agent-admin 계정으로 앱을 실행합니다.  
+sudo -u agent-admin /home/agent-admin/agent-app/agent-app | sudo tee /var/log/agent-app/boot.log
+```
+<img width="811" height="217" alt="스크린샷 2026-05-14 오후 11 21 54" src="https://github.com/user-attachments/assets/ec873522-06ec-4071-9d89-9316ceeca602" />
+
+
+# 2 단계 / 3단계
+[3단계]
+#앱이 원하는 업로드 폴더 생성
+sudo mkdir -p /home/agent-admin/agent-app/upload_files
+
+#앱이 원하는 키 폴더 및 파일 생성
+sudo mkdir -p /home/agent-admin/agent-app/api_keys
+sudo touch /home/agent-admin/agent-app/api_keys/t_secret.key
+
+#소유권 전체 재설정
+sudo chown -R agent-admin:agent-common /home/agent-admin/agent-app/
+
+#검증
+[2단계]
+sudo -u agent-admin \
+AGENT_HOME=/home/agent-admin/agent-app \
+AGENT_PORT=15034 \
+AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files \
+AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys/t_secret.key \
+/home/agent-admin/agent-app/agent-app | sudo tee /var/log/agent-app/boot.log
+
+# 4단계
+1. 15034 포트를 쓰고 있는 범인 찾기
+sudo lsof -i :15034  
+
+
+
+```
+<img width="735" height="31" alt="스크린샷 2026-05-14 오후 11 03 30" src="https://github.com/user-attachments/assets/ff39b591-4ebb-44cb-bd9d-1dc647d9dad8" />
+
+<img width="654" height="181" alt="스크린샷 2026-05-14 오후 11 04 21" src="https://github.com/user-attachments/assets/ff8c3764-0847-4a46-9d0f-7ea946438481" />
+
 ### `monitor.sh` 실행 결과 프로세스/리소스 정상 수집 확인   
   
 ### `monitor.log` 누적 기록   
