@@ -250,13 +250,35 @@ sudo crontab -u agent-admin -ㅣ
 ##
 
 ### ⁂`monitor.log` 누적 기록 / crontab 자동 실행 확인  (1분 주기 로그 증가 확인)  
-
+[오류버전 ]
+```bash
 스크립트 실행  
 `sudo -u agent-admin /home/agent-admin/agent-app/monitor.sh`  
 로그확인  
-`sudo tail -f /var/log/agent-app/monitor.log`  
-  
+`sudo tail -f /var/log/agent-app/monitor.log`
+```
 <img width="837" height="195" alt="스크린샷 2026-05-15 오전 12 58 43" src="https://github.com/user-attachments/assets/5aa2b7cf-144d-4588-8cf2-a6a40f5a27cb" />
+
+##
+
+[노멀버전] 
+```bash
+1. 프로세스 완전 종료 (찌꺼기 제거)
+sudo pkill -f agent-app
+
+2. 앱 다시 실행 (환경 변수 포함)
+sudo -u agent-admin \
+AGENT_HOME=/home/agent-admin/agent-app \
+AGENT_PORT=15034 \
+AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files \
+AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys/t_secret.key \
+nohup /home/agent-admin/agent-app/agent-app > /dev/null 2>&1 &
+
+3. 로그 확인
+sudo tail -f /var/log/agent-app/monitor.log
+```  
+<img width="724" height="316" alt="스크린샷 2026-05-15 오전 1 03 01" src="https://github.com/user-attachments/assets/1cd775c4-0b1d-48d4-84fe-a5dc27f2a17b" />
+
 
 ---
 
