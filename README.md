@@ -240,21 +240,23 @@ sudo crontab -u agent-admin -e
 * * * * * /home/agent-admin/agent-app/monitor.sh
 
 #터미널에서 (* * * * * /home/agent-admin/agent-app/monitor.sh) 작동검사
-sudo crontab -u agent-admin -1
+sudo crontab -u agent-admin -ㅣ
 
 ```
 <img width="675" height="69" alt="스크린샷 2026-05-15 오전 12 29 37" src="https://github.com/user-attachments/assets/4e73f9b2-7143-47ff-a67a-b326905bee7d" />
-
-
 <img width="1061" height="493" alt="스크린샷 2026-05-14 오후 11 58 01" src="https://github.com/user-attachments/assets/3fe0287f-0632-4609-98e1-c5161adee18b" />
 <img width="614" height="396" alt="스크린샷 2026-05-15 오전 12 01 05" src="https://github.com/user-attachments/assets/bdaa6043-8ecb-4e4d-b32c-9f9450cdf7ce" />
 
 ##
 
 ### ⁂`monitor.log` 누적 기록 / crontab 자동 실행 확인  (1분 주기 로그 증가 확인)  
-`sudo tail -f /var/log/agent-app/monitor.log`
+
+스크립트 실행  
+`sudo -u agent-admin /home/agent-admin/agent-app/monitor.sh`  
+로그확인  
+`sudo tail -f /var/log/agent-app/monitor.log`  
   
- <img width="501" height="226" alt="스크린샷 2026-05-15 오전 12 33 09" src="https://github.com/user-attachments/assets/faa8b41a-f675-40a5-b28e-3483a1c906ce" />
+<img width="837" height="195" alt="스크린샷 2026-05-15 오전 12 58 43" src="https://github.com/user-attachments/assets/5aa2b7cf-144d-4588-8cf2-a6a40f5a27cb" />
 
 ---
 
@@ -269,29 +271,42 @@ sudo nano /home/agent-admin/agent-app/monitor.sh
 #!/bin/bash
 
 LOG_FILE="/var/log/agent-app/monitor.log"
-# APP_NAME을 더 명확하게 지정 (실행 중인 파일명)
-APP_NAME="agent-app" 
+APP_NAME="agent-app"
+TARGET_PORT=15034
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
 
-# 1. PID 추출 (가장 오래된 프로세스 하나만 가져와서 에러 방지)
+# 1. 프로세스(PID) 및 포트 상태 확인
 PID=$(pgrep -f "$APP_NAME" | head -n 1)
+PORT_LISTEN=$(ss -tuln | grep -w "$TARGET_PORT")
 
-# 2. PID가 숫자인지 확인 후 리소스 수집
-if [[ -n "$PID" && "$PID" =~ ^[0-9]+$ ]]; then
+# 2. 리소스 및 상태 판별
+if [[ -n "$PID" ]]; then
     STATUS="UP"
-    # 앞뒤 공백을 확실히 제거하기 위해 xargs 사용
     CPU=$(ps -p "$PID" -o %cpu --no-headers | xargs)
     MEM=$(ps -p "$PID" -o rss --no-headers | awk '{printf "%.2fMB", $1/1024}')
+    
+    # [포트 체크] 프로세스는 있는데 포트가 안 열려있으면 경고
+    if [[ -z "$PORT_LISTEN" ]]; then
+        PORT_STAT="OFFLINE"
+        WARN="!! PORT_ERR !!"
+    else
+        PORT_STAT="ONLINE"
+        WARN="NORMAL"
+    fi
 else
     STATUS="DOWN"
+    PORT_STAT="OFFLINE"
     CPU="0.0"
     MEM="0MB"
+    WARN="!! CRITICAL !!"
 fi
 
-# 3. 로그 기록
-echo "[$TIMESTAMP] Status: $STATUS | CPU: ${CPU:-0.0}% | Memory: ${MEM:-0MB}" >> $LOG_FILE
+# 3. 로그 기록 (포트와 경고 내역 포함)
+echo "[$TIMESTAMP] Status: $STATUS | Port: $PORT_STAT | CPU: ${CPU:-0.0}% | Mem: ${MEM:-0MB} | Msg: $WARN" >> $LOG_FILE
 ```
-<img width="887" height="487" alt="스크린샷 2026-05-15 오전 12 25 32" src="https://github.com/user-attachments/assets/ff09d44e-6e57-400b-bc4f-7a71ba6dc563" />
+<img width="889" height="487" alt="스크린샷 2026-05-15 오전 12 56 22" src="https://github.com/user-attachments/assets/d071713a-4b9c-4b0a-9b2f-5c2c6760db58" />
+
+
 
 
 
