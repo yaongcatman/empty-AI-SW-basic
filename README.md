@@ -76,7 +76,7 @@ sudo sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
 # 설정값 검증
 grep -E "Port|PermitRootLogin" /etc/ssh/sshd_config  
 ```
-  안녕안녕 내이름은 
+  안녕안녕 내이름은 출력확인 
 
 
 ### 방화벽 허용 (20022, 15034)  
